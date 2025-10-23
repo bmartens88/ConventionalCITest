@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.1.0](https://github.com/bmartens88/ConventionalCITest/compare/v1.0.1...v1.1.0) (2025-10-23)
+
+
+### Features
+
+* **ci:** add nuget generation step ([fbff645](https://github.com/bmartens88/ConventionalCITest/commit/fbff64522dfde1ce5881d5edcca6f4ebc28af420))
+
+
+### Bug Fixes
+
+* **ci:** added no-restore to test command ([e0a09a0](https://github.com/bmartens88/ConventionalCITest/commit/e0a09a06fb242a70e957686ff9d71a301490d00c))
+
 ## [1.0.1](https://github.com/bmartens88/ConventionalCITest/compare/v1.0.0...v1.0.1) (2025-10-23)
 
 
