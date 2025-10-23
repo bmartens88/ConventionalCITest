@@ -23,3 +23,25 @@ jobs:
         with:
           name: NuGetPackage
           path: Testerke/Testerke/bin/Release/
+  
+  publish:
+    needs: pack
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Download NuGet build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: NuGetPackage
+        id: download
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+          source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
+        env:
+          NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish NuGet package
+        run: dotnet nuget push ${{ steps.download.outputs.download-path }}/*.nupkg
