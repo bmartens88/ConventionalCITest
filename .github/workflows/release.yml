@@ -16,12 +16,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v5
         with:
-          node-version: '20'
+          dotnet-version: 9.0.x
+
+      - name: Restore
+        run: dotnet restore Testerke/Testerke.csproj
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore Testerke/Testerke.csproj
+
+      - name: Test
+        run: dotnet test
 
       - name: Create Release
         uses: googleapis/release-please-action@v4
