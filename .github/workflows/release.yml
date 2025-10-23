@@ -30,7 +30,7 @@ jobs:
         run: dotnet build --configuration Release --no-restore Testerke/Testerke.csproj
 
       - name: Test
-        run: dotnet test
+        run: dotnet test Testerke/Testerke.csproj
 
       - name: Create Release
         uses: googleapis/release-please-action@v4
