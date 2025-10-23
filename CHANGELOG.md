@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/bmartens88/ConventionalCITest/compare/v1.1.0...v1.1.1) (2025-10-23)
+
+
+### Bug Fixes
+
+* **ci:** add publish step to package.yml ([52a5f14](https://github.com/bmartens88/ConventionalCITest/commit/52a5f1402b8f3b28194774728253f9fb1965f2c6))
+
 ## [1.1.0](https://github.com/bmartens88/ConventionalCITest/compare/v1.0.1...v1.1.0) (2025-10-23)
 
 
