@@ -31,7 +31,7 @@ jobs:
           echo "nuget_version=$(echo $gitversion | jq -r '.NuGetVersion')" >> $GITHUB_OUTPUT
 
       - name: Restore dependencies
-        run: dotnet restore Testerke/Testerke/csproj
+        run: dotnet restore Testerke/Testerke.csproj
 
       - name: Build
         run: dotnet build --configuration Release --no-restore -p:Version=${{ steps.gitversion.outputs.version }} Testerke/Testerke.csproj
