@@ -1,0 +1,30 @@
+name: Test report
+on:
+  workflow_run:
+    workflows: [ 'CI' ]
+    types:
+      - completed
+permissions:
+  contents: read
+  actions: read
+  checks: write
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Download test results
+        uses: actions/download-artifact@v4.1.2
+        with:
+          run-id: ${{ github.event.workflow_run.id }}
+          name: test-results
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        id: download
+      - name: Publish test results
+        uses: dorny/test-reporter@v1.8.0
+        with:
+          name: XUnit tests
+          path: ${{ steps.download.outputs.download-path }}/*.trx
+          reporter: dotnet-trx
+          token: ${{ secrets.GITHUB_TOKEN }}
