@@ -1,0 +1,33 @@
+name: CI
+on:
+  pull_request:
+    branches:
+      - main
+jobs:
+  ci:
+    name: CI
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Setup .NET
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+    
+      # Restore dependencies
+      - name: Restore
+        run: dotnet restore Testerke/Testerke.csproj
+
+      # Build application code
+      - name: Build
+        run: dotnet build --configuration Release --no-restore Testerke/Testerke.csproj
+
+      # Test application code
+      - name: Test
+        run: dotnet test --configuration Release --no-build --verbosity normal Testerke/Testerke.csproj
