@@ -45,7 +45,7 @@ jobs:
 
       # Build NuGet package
       - name: Package
-        run: dotnet pack --configuration Release --no-build -p:Version=${{ steps.gitversion.outputs.version }} -o artifacts Testerke/Testerke.csproj
+        run: dotnet pack --configuration Release --no-build -p:Version=${{ steps.gitversion.outputs.version }} -o artifacts
 
       # # Create tag for determined version
       # - name: Tag
