@@ -1,40 +1,68 @@
-name: Release
+name: CI/CD Pipeline
 
 on:
   push:
     branches:
       - main
 
-permissions:
-  contents: write
-  pull-requests: write
-
 jobs:
-  release-please:
-    outputs:
-      release_created: ${{ steps.release.outputs.release_created }}
+  build-test-release:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v5
+        uses: actions/checkout@v4
         with:
-          dotnet-version: 9.0.x
+          fetch-depth: 0
 
-      - name: Restore
-        run: dotnet restore Testerke/Testerke.csproj
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Install GitVersion
+        run: dotnet tool install --global GitVersion.Tool
+      
+      - name: Determin version
+        id: gitversion
+        run: |
+          gitversion=$(dotnet-gitversion /output json)
+          echo "version=$(echo $gitversion | jq -r '.SemVer')" >> $GITHUB_OUTPUT
+          echo "nuget_version=$(echo $gitversion | jq -r '.NuGetVersion')" >> $GITHUB_OUTPUT
+
+      - name: Restore dependencies
+        run: dotnet restore Testerke/Testerke/csproj
 
       - name: Build
-        run: dotnet build --configuration Release --no-restore Testerke/Testerke.csproj
+        run: dotnet build --configuration Release --no-restore -p:Version=${{ steps.gitversion.outputs.version }} Testerke/Testerke.csproj
 
       - name: Test
-        run: dotnet test --no-restore Testerke/Testerke.csproj
+        run: dotnet test --configuration Release --no-build --verbosity normal Testerke/Testerke.csproj
+
+      - name: Package
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: dotnet pack --configuration Release --no-build -p:Version=${{ steps.gitversion.outputs.version }} -o artifacts Testerke/Testerke.csproj
 
       - name: Create Release
-        uses: googleapis/release-please-action@v4
-        id: release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          config-file: .github/release-please-config.json
-          manifest-file: .github/release-please-manifest.json
+          tag_name: v${{ steps.gitversion.outputs.version }}
+          release_name: Release v${{ steps.gitversion.outputs.version }}
+          body: |
+            Automated release for version v${{ steps.gitversion.outputs.version }}
+            Generated using conventional commits
+          draft: false
+          prerelease: false
+
+      - name: Upload release artifact
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: ./artifacts/*.nupkg
+          asset_content_type: application/octet-stream
