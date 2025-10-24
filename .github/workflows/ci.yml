@@ -3,8 +3,10 @@ on:
   pull_request:
     branches:
       - develop
+    types: [ opened, closed ]
 jobs:
   ci:
+    if: ${{ github.event.pull_request.state == 'open' || github.event.pull_request.merged }}
     name: CI
     runs-on: ubuntu-latest
     steps:
@@ -19,6 +21,15 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 9.0.x
+
+      # Setup cache for NuGet dependencies
+      - name: Setup .NET NuGet dependency cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('src/Calculator/Calculator.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget
     
       # Restore dependencies
       - name: Restore
@@ -30,4 +41,12 @@ jobs:
 
       # Test application code
       - name: Test
-        run: dotnet test --configuration Release --no-build --verbosity normal
+        run: dotnet test --configuration Release --no-build --verbosity normal --logger "trx;LogFilename=test-results.trx" --results-directory="./TestResults"
+
+      # Upload test results
+      - name: Publish test results
+        uses: actions/upload-artifact@v4.3.1
+        if: success() || failure()
+        with:
+          name: test-results
+          path: ./TestResults
