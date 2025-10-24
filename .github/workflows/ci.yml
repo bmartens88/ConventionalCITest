@@ -2,7 +2,7 @@ name: CI
 on:
   pull_request:
     branches:
-      - main
+      - develop
 jobs:
   ci:
     name: CI
@@ -22,12 +22,12 @@ jobs:
     
       # Restore dependencies
       - name: Restore
-        run: dotnet restore Testerke/Testerke.csproj
+        run: dotnet restore
 
       # Build application code
       - name: Build
-        run: dotnet build --configuration Release --no-restore Testerke/Testerke.csproj
+        run: dotnet build --configuration Release --no-restore
 
       # Test application code
       - name: Test
-        run: dotnet test --configuration Release --no-build --verbosity normal Testerke/Testerke.csproj
+        run: dotnet test --configuration Release --no-build --verbosity normal
