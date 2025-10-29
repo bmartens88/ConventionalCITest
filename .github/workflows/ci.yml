@@ -6,7 +6,7 @@ on:
     types: [ opened, closed ]
 jobs:
   ci:
-    if: ${{ github.event.pull_request.state == 'open' || github.event.pull_request.merged }}
+    if: ${{ (github.event.pull_request.state == 'open' || github.event.pull_request.merged) || (github.event_name == 'pull_request' && !startsWith(github.event.pull_request.head.ref, 'release-please--')) }}
     name: CI
     runs-on: ubuntu-latest
     steps:

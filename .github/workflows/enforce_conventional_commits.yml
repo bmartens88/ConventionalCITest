@@ -19,4 +19,4 @@ jobs:
         with: { fetch-depth: 0 }
       - name: Check Commit Messages
         uses: wagoid/commitlint-github-action@v6
-        with: { configFile: .commitlintrc.yml }
+        with: { configFile: .github/.commitlintrc.yml }
