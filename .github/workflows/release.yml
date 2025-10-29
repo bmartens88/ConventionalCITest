@@ -3,6 +3,10 @@ on:
   push:
     branches:
       - main
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
 jobs:
   build-test-release:
     runs-on: ubuntu-latest
@@ -19,17 +23,25 @@ jobs:
         with:
           dotnet-version: '9.0.x'
 
-      # Install GitVersion tool
-      - name: Install GitVersion
-        run: dotnet tool install --global GitVersion.Tool
+      - name: Create release
+        uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          config-file: .github/release-please-config.json
+          manifest-file: .github/release-please-manifest.json
+
+      # # Install GitVersion tool
+      # - name: Install GitVersion
+      #   run: dotnet tool install --global GitVersion.Tool
       
-      # Determines version based of conventional commits
-      - name: Determine version
-        id: gitversion
-        run: |
-          gitversion=$(dotnet-gitversion /output json)
-          echo "version=$(echo $gitversion | jq -r '.SemVer')" >> $GITHUB_OUTPUT
-          echo "nuget_version=$(echo $gitversion | jq -r '.NuGetVersion')" >> $GITHUB_OUTPUT
+      # # Determines version based of conventional commits
+      # - name: Determine version
+      #   id: gitversion
+      #   run: |
+      #     gitversion=$(dotnet-gitversion /output json)
+      #     echo "version=$(echo $gitversion | jq -r '.SemVer')" >> $GITHUB_OUTPUT
+      #     echo "nuget_version=$(echo $gitversion | jq -r '.NuGetVersion')" >> $GITHUB_OUTPUT
 
       # Restore dependencies
       - name: Restore dependencies
@@ -37,7 +49,8 @@ jobs:
 
       # Build application code
       - name: Build
-        run: dotnet build --configuration Release --no-restore -p:Version=${{ steps.gitversion.outputs.version }}
+        # run: dotnet build --configuration Release --no-restore -p:Version=${{ steps.gitversion.outputs.version }}
+        run: dotnet build --configuration Release --no-restore -p:Version=${{ steps.release.outputs.version }}
 
       # Test application code
       - name: Test
@@ -45,7 +58,8 @@ jobs:
 
       # Build NuGet package
       - name: Package
-        run: dotnet pack --configuration Release --no-build -p:Version=${{ steps.gitversion.outputs.version }} -o artifacts
+        # run: dotnet pack --configuration Release --no-build -p:Version=${{ steps.gitversion.outputs.version }} -o artifacts
+        run: dotnet pack --configuration Release --no-build -p:Version=${{ steps.release.outputs.version }} -o artifacts
 
       # # Create tag for determined version
       # - name: Tag
@@ -54,25 +68,25 @@ jobs:
       #     tag: 'v${{ steps.gitversion.outputs.version }}'
       #     message: 'Release v${{ steps.gitversion.outputs.version }}'
 
-      # Create a new release
-      - name: Create Release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: v${{ steps.gitversion.outputs.version }}
-          release_name: Release v${{ steps.gitversion.outputs.version }}
-          body: |
-            Automated release for version v${{ steps.gitversion.outputs.version }}
-            Generated using conventional commits
-          draft: false
-          prerelease: false
+      # # Create a new release
+      # - name: Create Release
+      #   uses: actions/create-release@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     tag_name: v${{ steps.gitversion.outputs.version }}
+      #     release_name: Release v${{ steps.gitversion.outputs.version }}
+      #     body: |
+      #       Automated release for version v${{ steps.gitversion.outputs.version }}
+      #       Generated using conventional commits
+      #     draft: false
+      #     prerelease: false
 
       - name: Upload release artifact
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          upload_url: ${{ steps.release.outputs.upload_url }}
           asset_path: ./artifacts/*.nupkg
           asset_content_type: application/octet-stream
