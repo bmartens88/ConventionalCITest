@@ -3,7 +3,7 @@ on:
   pull_request:
     branches:
       - develop
-    types: [ opened, closed ]
+    types: [ opened, synchronize, closed ]
 jobs:
   ci:
     if: ${{ (github.event.pull_request.state == 'open' || github.event.pull_request.merged) || (github.event_name == 'pull_request' && !startsWith(github.event.pull_request.head.ref, 'release-please--')) }}
@@ -12,13 +12,13 @@ jobs:
     steps:
       # Checkout code
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
       # Setup .NET
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 9.0.x
 
